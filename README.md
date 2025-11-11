@@ -2,4 +2,5 @@
 
 ### Integrante
 - Felipe Teodoro Bandeira
-- RA: 22354278
+- Eduardo Galvão de Aquino Cavalheiro
+- João Victor ferreira marques
