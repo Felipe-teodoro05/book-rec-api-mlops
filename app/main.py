@@ -116,3 +116,69 @@ def add_preference(pref: Preference):
             status_code=500,
             detail="Erro ao salvar avaliação no banco."
         )
+
+
+class UserCreate(BaseModel):
+    user_id: int
+    location: str | None = None
+    age: int | None = None
+
+
+@app.post("/users/")
+def create_user(user: UserCreate):
+    try:
+        with engine.connect() as conn:
+            query = text("""
+                INSERT INTO users (user_id, location, age)
+                VALUES (:user_id, :location, :age)
+            """)
+            conn.execute(query, {
+                "user_id": user.user_id,
+                "location": user.location,
+                "age": user.age
+            })
+            conn.commit()
+
+        return {"message": "Usuário criado com sucesso!"}
+
+    except Exception as e:
+        print("Erro ao inserir usuário:", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao adicionar usuário."
+        )
+
+
+class ItemCreate(BaseModel):
+    isbn: str
+    book_title: str
+    book_author: str | None = None
+    year_of_publication: int | None = None
+    publisher: str | None = None
+
+
+@app.post("/items/")
+def create_item(item: ItemCreate):
+    try:
+        with engine.connect() as conn:
+            query = text("""
+                INSERT INTO books (isbn, book_title, book_author, year_of_publication, publisher)
+                VALUES (:isbn, :book_title, :book_author, :year, :publisher)
+            """)
+            conn.execute(query, {
+                "isbn": item.isbn,
+                "book_title": item.book_title,
+                "book_author": item.book_author,
+                "year": item.year_of_publication,
+                "publisher": item.publisher
+            })
+            conn.commit()
+
+        return {"message": "Livro adicionado com sucesso!"}
+
+    except Exception as e:
+        print("Erro ao inserir livro:", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao adicionar livro."
+        )
