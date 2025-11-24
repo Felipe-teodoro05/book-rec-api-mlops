@@ -5,7 +5,7 @@
 - Eduardo Galvão de Aquino Cavalheiro
 - João Victor ferreira marques
 
-Este repositório contém a implementação de um sistema de recomendação de livros baseado em filtragem colaborativa. O projeto foi desenvolvido como parte da disciplina de Desenvolvimento de Inteligência Artificial, utilizando FastAPI para a interface de aplicação, Docker para containerização e PostgreSQL (Neon) para persistência de dados.
+Este repositório contém a implementação de um sistema de recomendação de livros baseado em filtragem colaborativa. O projeto foi desenvolvido como parte da disciplina de Desenvolvimento de Sistemas de Inteligência Artificial, utilizando FastAPI para a interface de aplicação, Docker para containerização e PostgreSQL (Neon) para persistência de dados.
 
 ## Visão Geral do Projeto
 
