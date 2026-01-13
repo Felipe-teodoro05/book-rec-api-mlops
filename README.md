@@ -1,119 +1,119 @@
-# Sistema de Recomendação de Livros
+# BookMind: MLOps Recommendation Engine
 
-### Integrantes
-- Felipe Teodoro Bandeira
-- Eduardo Galvão de Aquino Cavalheiro
-- João Victor ferreira marques
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/DB-Neon%20Serverless-336791?style=flat&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![Python](https://img.shields.io/badge/Core-Python%203.11-3776AB?style=flat&logo=python&logoColor=white)]()
 
-Este repositório contém a implementação de um sistema de recomendação de livros baseado em filtragem colaborativa. O projeto foi desenvolvido como parte da disciplina de Desenvolvimento de Sistemas de Inteligência Artificial, utilizando FastAPI para a interface de aplicação, Docker para containerização e PostgreSQL (Neon) para persistência de dados.
+## Project Overview
 
-## Visão Geral do Projeto
+O **BookMind** é um microserviço de alta performance projetado para entregar recomendações personalizadas de livros em tempo real. A arquitetura foi construída seguindo princípios de **ML Engineering**, garantindo escalabilidade via Docker e persistência de dados em nuvem (Neon Serverless Postgres).
 
-O sistema foi projetado para processar o dataset *Book-Crossings*, armazenar as informações em um banco de dados relacional na nuvem e disponibilizar recomendações personalizadas através de uma API RESTful. A arquitetura prioriza a escalabilidade e a reprodutibilidade do ambiente.
+Ao contrário de scripts simples de ML, este projeto foca no ciclo completo de vida do modelo (MLOps): desde a engenharia de dados (ETL) até a exposição da inferência via API RESTful.
 
-### Objetivos
-* Implementar um fluxo de Engenharia de Machine Learning (ML Engineering).
-* Desenvolver uma API performática para servir o modelo.
-* Utilizar containerização para padronização do ambiente de desenvolvimento e produção.
-* Integrar a aplicação com banco de dados em nuvem.
+---
 
-## Stack Tecnológica
+## Architecture & MLOps Strategy
 
-* **Linguagem:** Python 3.11
-* **Framework Web:** FastAPI
-* **Servidor:** Uvicorn
-* **Containerização:** Docker e Docker Compose
-* **Banco de Dados:** PostgreSQL (Serverless via Neon Tech)
-* **Machine Learning:** Scikit-Learn (TruncatedSVD), Pandas, NumPy
-* **Gerenciamento de Dependências:** Pip
+O sistema adota uma estratégia híbrida de **Offline Training** com **Online Inference** para garantir baixa latência.
 
-## Arquitetura e Decisões de Design
+```mermaid
+graph LR
+    subgraph "Data Engineering Layer"
+        A["Raw Dataset"] -->|ETL Script| B[("Neon Postgres Cloud")]
+    end
 
-### 1. Modelo de Recomendação (SVD)
-Utilizou-se a técnica de Fatoração de Matriz via *Singular Value Decomposition* (SVD).
-* **Estratégia de Inferência:** Devido ao custo computacional de calcular decomposições de matrizes grandes em tempo real, adotou-se uma abordagem de **treinamento offline**. Um script dedicado processa os dados, gera os vetores latentes de usuários e itens, e serializa o modelo (`.pkl`). A API carrega esses artefatos na inicialização, garantindo baixa latência nas requisições.
+    subgraph "Training Pipeline (Offline)"
+        B -->|Fetch Data| C["Training Script"]
+        C -->|SVD Algorithm| D["Model Artifacts (.pkl)"]
+    end
 
-### 2. Banco de Dados (Neon PostgreSQL)
-A escolha pelo Neon (PostgreSQL serverless) permite desacoplar a camada de persistência da aplicação containerizada, simulando um ambiente de produção real e evitando a perda de dados ao reiniciar os containers.
+    subgraph "Serving Layer (Online)"
+        D -->|Load on Startup| E["FastAPI Container"]
+        U["User Request"] -->|GET /recommend| E
+        E -->|JSON Response| U
+    end
+```
 
-### 3. Estrutura de Pastas
-* `/app`: Contém o código-fonte da API (`main.py`) e os artefatos do modelo (`model_artifacts/`).
-* `/scripts`: Scripts de ETL (`load_data_to_neon.py`) e treinamento (`train_model.py`).
-* `/data`: Diretório local para armazenamento temporário dos datasets brutos (não versionado).
-* `/tests`: Diretório para realização de testes unitários.
-* `Dockerfile` e `docker-compose.yml`: Configurações de infraestrutura.
+### Decisões Técnicas de Design
 
-## Guia de Instalação e Execução
+- **Modelo SVD (Singular Value Decomposition):** escolhido pela eficiência em filtragem colaborativa. O treinamento é desacoplado da API, gerando artefatos serializados para inferência rápida.
+- **Database Serverless (Neon):** desacoplamento da camada de dados. Permite que a API em Docker seja reiniciada sem perda de estado, simulando um ambiente de produção cloud-native.
+- **Containerização:** o ambiente é padronizado via `docker-compose`, eliminando problemas de “works on my machine”.
+
+### Tech Stack
+
+| Componente | Tecnologia | Função |
+|---|---|---|
+| API Framework | FastAPI | Interface REST assíncrona de alta velocidade |
+| Server | Uvicorn | Servidor ASGI para produção |
+| Container | Docker & Compose | Orquestração do ambiente |
+| Database | PostgreSQL (Neon) | Armazenamento persistente na nuvem |
+| ML Core | Scikit-Learn | Implementação do algoritmo `TruncatedSVD` |
+
+## 💻 Installation & Setup
 
 ### Pré-requisitos
-* Docker e Docker Desktop instalados.
-* Git instalado.
-* Conta e projeto configurado no Neon (ou instância PostgreSQL compatível).
+- Docker Desktop instalado.
+- Conta no Neon Tech (ou qualquer Postgres externo).
 
-### 1. Clonagem do Repositório
+### 1. Clone & Configuração
 
 ```bash
-git clone https://github.com/Felipe-teodoro05/recomendation-system.git
-cd recomendation-system
+git clone https://github.com/Felipe-teodoro05/book-rec-api-mlops.git
+cd book-rec-api-mlops
 ```
+### 2. Variáveis de Ambiente
+Crie um arquivo .env na raiz (não versionado) com sua string de conexão:
 
-### 2. Configuração de Variáveis de Ambiente
-É necessário criar um arquivo .env na raiz do projeto para configurar a conexão com o banco de dados. Este arquivo não é versionado por questões de segurança.
-
-Crie o arquivo .env com o seguinte conteúdo:
-```
+```text
 DATABASE_URL="postgres://usuario:senha@host-do-neon/nome-do-banco?sslmode=require"
 ```
-### 3. Preparação do Banco de Dados e Modelo
-Antes de iniciar a API, é necessário popular o banco de dados e treinar o modelo inicial. Recomenda-se executar estes scripts localmente em um ambiente virtual Python.
+### 3. Pipeline de Dados (ETL & Treino)
+Antes de subir a API, execute o pipeline de dados localmente para popular o banco e gerar o modelo:
 
-```Bash
-
-# Criação do ambiente virtual (Linux/Mac)
-python3 -m venv venv
-source venv/bin/activate
-
-# Criação do ambiente virtual (Windows)
+```bash
+# Setup do ambiente virtual
 python -m venv venv
-.\venv\Scripts\activate
-
-# Instalação das dependências
+source venv/bin/activate  # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 
-# Execução do ETL (Carga de dados para o Neon)
+# Passo 1: Carga de Dados (ETL)
 python scripts/load_data_to_neon.py
 
-# Treinamento do Modelo (Geração dos arquivos .pkl)
+# Passo 2: Treinamento do Modelo
 python scripts/train_model.py
+Isso criará os arquivos .pkl necessários na pasta app/model_artifacts.
 ```
-### 4. Execução da Aplicação com Docker
-Com o banco populado e os artefatos gerados na pasta app/model_artifacts, inicie o serviço via Docker Compose:
-
-```
+### 4. Deploy (Docker)
+```bash
 docker-compose up --build
-O terminal exibirá os logs de inicialização. Aguarde a mensagem indicando que o servidor Uvicorn está rodando.
+Aguarde o log: Uvicorn running on http://0.0.0.0:8000
 
-Utilização da API
-A documentação interativa (Swagger UI) pode ser acessada em:
+📡 API Usage
+Acesse a documentação interativa (Swagger UI) em: http://localhost:8000/docs
 
-URL: http://localhost:8000/docs
+Exemplo de recomendação: GET /recommendations/276747
 
-Principais Endpoints
-GET /: Verificação de status da API.
-
-GET /test-db: Teste de conectividade com o banco de dados PostgreSQL.
-
-GET /recommendations/{user_id}: Retorna a lista de livros recomendados para o ID informado.
-
-Exemplo: /recommendations/276747
-
-POST /preferences/: Registra novas interações de usuários (simulação).
+json
+[
+  {
+    "book_title": "The Lovely Bones",
+    "author": "Alice Sebold",
+    "score": 0.98
+  },
+  {
+    "book_title": "The Da Vinci Code",
+    "author": "Dan Brown",
+    "score": 0.95
+  }
+]
 ```
+Credits & Team
+Desenvolvido como projeto prático de Engenharia de IA.
 
-### Testes
-O projeto conta com testes automatizados para validar a integridade dos endpoints e da conexão com o banco.
+Felipe Teodoro Bandeira — ML Engineering & API
 
-```
-/tests
-```
+Eduardo Galvão — Data Pipeline
 
+João Victor Ferreira — Model Tuning
