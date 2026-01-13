@@ -51,7 +51,7 @@ graph LR
 | Database | PostgreSQL (Neon) | Armazenamento persistente na nuvem |
 | ML Core | Scikit-Learn | Implementação do algoritmo `TruncatedSVD` |
 
-## 💻 Installation & Setup
+## Installation & Setup
 
 ### Pré-requisitos
 - Docker Desktop instalado.
